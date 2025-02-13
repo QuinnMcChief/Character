@@ -1,2 +1,2 @@
 # Character
-Handles both Player character and NPC movement/behavior
+Handles both Player character and NPC movement/behavior.
