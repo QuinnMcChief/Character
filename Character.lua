@@ -23,7 +23,7 @@ local Character = {
 		["Jumping"] = BoolValue | nil
 		["Rolling"] = BoolValue | nil
 		["BlahBlahBlah"] = BoolValue | nil
-		etc. etc.
+		etc. etc. I will OCCASIONALLY store other types of values in here, but mostly BoolValues
 		
 		Below functions will attempt to index these boolvalues. If they do not exist, for a character, they will be created.
 	}]]
@@ -33,18 +33,7 @@ function Character.Is(valueName: string, character: Model): boolean --> Gets the
 	local characterValues = Character[character]
 	if not characterValues then
 		--> character template:
-		Character[character] = {
-			["CurrentFallSoundTween"] = nil,
-			["OnMoveToFinishedConnection"] = nil, --> Utilized in the Character.MoveTo function
-			["CurrentMoveTo"] = nil,
-			["MoveToQueue"] = {},
-			
-		}
-		local raycastParams = RaycastParams.new() --> Will be used for raycasting downwards to check for player landing. Not utilized yet as of the time I write this.
-		raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-		raycastParams.FilterDescendantsInstances = {character}
-		Character[character]["RaycastParams"] = raycastParams
-		characterValues = Character[character]
+		Character[character] = {}
 	end
 	
 	--> Make sure only the SERVER makes the folder!
@@ -89,6 +78,7 @@ end
 
 ----------------------------------------------------------------------------------------------------
 
+-- Plays a sound based each time keyframe "FootDown" is reached based on what the name of the part the player is walking on. All parts in my game are plastic (stylistic choice), but some are named dirt and colored brown, etc, so the sound played would be "Dirt"
 local function onKeyframeReached(animTrack: AnimationTrack, character: Model)
 	if Character["KeyframeReached"] ~= nil then
 		Character["KeyframeReached"]:Disconnect()
