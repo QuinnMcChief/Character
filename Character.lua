@@ -294,7 +294,7 @@ function Character.Fall(character: Model, shouldJumpForward: boolean)
 	-- It's possible the character could be in the middle of rolling while they hit another edge, so we need to cancel it:
 	if SoundFX.RecoverRoll.IsPlaying then SoundFX.RecoverRoll:Stop() end
 
-	local fallY = root.Position.Y -- Stores the last highest Y position while falling. Used for fall damage
+	local fallY = root.Position.Y -- Stores the last highest Y position while falling. Used for fall damage and whether the landing should invoke a big fall animation or not.
 	local currentVelocity = root.AssemblyLinearVelocity -- The speed at which you travel while jumping is equivalent to how fast you were walking/running when you went off the edge of a ledge.
 	local rollVelocity = Vector3.new(currentVelocity.X, 0, currentVelocity.Z)
 	local rotationConstant = root.CFrame - root.CFrame.Position--CFrame.new(Vector3.zero, hum.MoveDirection) --DO NOT CHANGE rotationConstant TO AssemblyLinearVelocity, ITHERE IS A GAMEBREAKING BUG WHEN YOU SLOWLY WALK OFF LEDGES!!!
@@ -313,29 +313,22 @@ function Character.Fall(character: Model, shouldJumpForward: boolean)
 
 	Character.PlayAnimation({["Animation"] = AnimationsFolder.Falling, ["Looped"] = true}, character)
 	
-	--> Raycast to check when player touches ground.
-	--[[local params = RaycastParams.new()
-	params.FilterType = Enum.RaycastFilterType.Exclude
-	params.FilterDescendantsInstances = {character}
-	local fallConnection = rs.Heartbeat:Connect(function()
-		local result = workspace:Blockcast(CFrame.new(root.CFrame - root.Position), root.Size, Vector3.new(0, 0.05, 0), params)
-		if result then
-			
-		end
-	end)]]
-	while hum:GetState() ~= states.Landed --[[Character.Is("Falling", character)]] do
+	while hum:GetState() ~= states.Landed  do
 		root.CFrame = CFrame.new(root.Position) * rotationConstant --> Character should maintain its orientation until it lands!
+		-- Stores the last highest Y position, used to calculate fall damage and whether the landing should invoke a big fall animation or not.
 		if root.Position.Y > fallY then
 			fallY = root.Position.Y
 		end
 
 		local fallDistance = fallY - root.Position.Y
+		-- There's a sound that starts to play fairly loudly if you fall long enough, mimicking a person falling through the air (think skydiving). This tweens the sound louder and stores it in the character template.
 		if fallDistance > 0 and not Character[character]["CurrentFallSoundTween"] then --> Before I checked the second value in this if statement, the FallWind sound was playing every frame. Had to implement this, even if it's messy...
 			SoundFX.FallWind:Play()
 			Character[character]["CurrentFallSoundTween"] = ts:Create(SoundFX.FallWind, fallSoundTweenInfo, {Volume = fallingSoundMaxVolume})
 			Character[character]["CurrentFallSoundTween"]:Play()
 		end
-		--> Deal with autojump
+		
+		-- Gradually slow the speed of the character when they travel through the air. This makes the falling more realistic.
 		root.AssemblyLinearVelocity = Vector3.new(currentVelocity.X, root.AssemblyLinearVelocity.Y, currentVelocity.Z)
 		if currentVelocity.X > 0 then
 			currentVelocity -= Vector3.new(0.15, 0, 0)
@@ -367,7 +360,7 @@ function Character.Fall(character: Model, shouldJumpForward: boolean)
 		local fallDistanceValueBase = Character.Add("FallDistance", character)
 		fallDistanceValueBase:SetAttribute("Height", (fallY - currentY))
 		if Character.Is("TryingToRecoverRoll", character) then
-			Character.RecoverRoll(character, rollVelocity)--rollVelocity)
+			Character.RecoverRoll(character, rollVelocity))
 		else
 			Character.Add("RecoveringFromBigFall", character)
 			hum.WalkSpeed = 0
@@ -386,9 +379,6 @@ function Character.Fall(character: Model, shouldJumpForward: boolean)
 		SoundFX.SmallLanding:Play()
 	end
 
-	if Character[character]["CurrentMoveTo"] then
-		Character.MoveTo(Character[character]["CurrentMoveTo"])
-	end
 	Character.Remove("FailedToRecoverRoll", character)
 end
 
