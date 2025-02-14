@@ -178,12 +178,14 @@ function Character.Idle(character: Model)
 	local root = character.HumanoidRootPart
 	local isAlreadyIdle = Character.Is("Idle", character)
 	if isAlreadyIdle then --[[warn("Already idle, CharacterMovement.Idle will end now.")]] return end
-	
+
+	-- Add the Idle state, since the character is now set as standing still (Idle)
 	Character.Add("Idle", character)
+	-- Remove any other possible states that contradict the concept of standing still:
 	Character.Remove("Walking", character)
 	Character.Remove("Sprinting", character)
 	Character.Remove("CrouchMoving", character)
-	Character.Remove("CrouchIdling", character)
+	Character.Remove("CrouchIdling", character) -- Does not count as regular idle, these two are different!
 	
 	Character.PlayAnimation({
 		["Animation"] = AnimationsFolder.Idle,
@@ -255,7 +257,10 @@ function Character.CrouchMove(character: Model)
 	local hum = character.Humanoid
 	local root = character.HumanoidRootPart
 	local isAlreadyCrouchMoving = Character.Is("CrouchMoving", character)
-	if isAlreadyCrouchMoving then --[[warn("Already CrouchMoving, CharacterMovement.CrouchMoving will end now.")]] return end
+	if isAlreadyCrouchMoving then 
+		warn("Already CrouchMoving, CharacterMovement.CrouchMoving will end now.") 
+		return 
+	end
 
 	Character.Add("CrouchMoving", character)
 	Character.Remove("CrouchIdling", character)
