@@ -1,10 +1,13 @@
 
 
 
-	-------------------------------------------------------
-	-- [ MEANT TO BE SHARED BY PLAYER CHARACTER & NPCs ] --
-	-------------------------------------------------------
+--[[
 
+This script functions as a state machine, switching character states on and off for the sake of enabling/disabling
+certain values for certain situations, such as whether the player is sprinting or not, or whether they're crouching or not.
+An example of a scenario in which this is useful is when crouching while walking prevents you from autojumping off a ledge. 
+
+]]
 
 local rep = game:GetService("ReplicatedStorage")
 local AnimationsFolder = rep.Assets.AnimationsFolder
@@ -18,6 +21,13 @@ local fallSoundTweenInfo = TweenInfo.new(3, Enum.EasingStyle.Cubic, Enum.EasingD
 
 local states = Enum.HumanoidStateType
 
+--[[
+
+	Script periodically parents/unparents boolvalues from a Statuses folder inside the character, indicating whether the player is performing an action or not.
+	I could have simply had a pre-set template of bool values and just switched their "Value" property on and off, but it's easier to debug when they look
+`	like they're appearing/disappearing in the explorer, or at least it is for me.
+
+]]
 local Character = {
 	--[[ Example: [CharacterObject] = {
 		["Jumping"] = BoolValue | nil
@@ -29,6 +39,7 @@ local Character = {
 	}]]
 }
 
+-- Checks whether a character is in a certain state. Also creates a state template if it does not already exist!
 function Character.Is(valueName: string, character: Model): boolean --> Gets the value, or makes it if it doesn't exist.
 	local characterValues = Character[character]
 	if not characterValues then
@@ -59,6 +70,7 @@ function Character.Is(valueName: string, character: Model): boolean --> Gets the
 	return value.Parent ~= nil
 end
 
+-- Adds states. Line 76 parents the boolvalue to the character's "Statuses" folder, indicating that state is now enabled!
 function Character.Add(valueName: string, character: Model): nil
 	Character.Is(valueName, character) --> Creates value if it doesn't exist so this doesn't yield an error.
 	Character[character][valueName].Parent = character.Statuses
@@ -66,6 +78,7 @@ function Character.Add(valueName: string, character: Model): nil
 	return Character[character][valueName]
 end
 
+-- Adds states. Line 76 parents the boolvalue to nil, indicating that state is now disabled!
 function Character.Remove(valueName: string, character: Model): nil
 	Character.Is(valueName, character) --> Creates value if it doesn't exist so this doesn't yield an error.
 	Character[character][valueName]:Remove()
