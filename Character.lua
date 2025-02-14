@@ -39,8 +39,8 @@ local Character = {
 	}]]
 }
 
--- Checks whether a character is in a certain state. Also creates a state template if it does not already exist!
-function Character.Is(valueName: string, character: Model): boolean --> Gets the value, or makes it if it doesn't exist.
+-- Checks whether a character is in a certain state by returning the boolvalue given valueName. Creates the boolvalue if it doesn't exist. Also creates a state template if it does not already exist! 
+function Character.Is(valueName: string, character: Model): boolean
 	local characterValues = Character[character]
 	if not characterValues then
 		--> character template:
