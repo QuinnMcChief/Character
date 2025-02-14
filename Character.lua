@@ -355,16 +355,18 @@ function Character.Fall(character: Model, shouldJumpForward: boolean)
 	local currentY = root.Position.Y
 	if not fallY then return end
 
+	-- Accounts for successful rolling, which can mitigate fall damage if character falls from a distance of greater than 20 studs.
+	-- Successful rolling is dependent on whether player is in the "RecoveringFromBigFall" state, which is dealt with in the Character.StartRecoverRollAttempt and Character.RecoverRoll function
 	local fallDistance = (fallY - currentY)
 	if fallDistance > 20 then
 		local fallDistanceValueBase = Character.Add("FallDistance", character)
-		fallDistanceValueBase:SetAttribute("Height", (fallY - currentY))
+		fallDistanceValueBase:SetAttribute("Height", fallDistance)
 		if Character.Is("TryingToRecoverRoll", character) then
 			Character.RecoverRoll(character, rollVelocity))
 		else
 			Character.Add("RecoveringFromBigFall", character)
 			hum.WalkSpeed = 0
-			hum:TakeDamage(math.floor(fallDistance * 1/5) )
+			hum:TakeDamage(math.floor(fallDistance * 1/5) ) -- Take damage equal to 20% of the distance you fall
 			SoundFX.BigLanding:Play()
 			local landingAnimTrack = Character.PlayAnimation({["Animation"] = AnimationsFolder.RecoveringFromBigFall}, character)
 			landingAnimTrack.Ended:Wait()
@@ -382,12 +384,17 @@ function Character.Fall(character: Model, shouldJumpForward: boolean)
 	Character.Remove("FailedToRecoverRoll", character)
 end
 
+--> RecoverRoll mitigates fall damage and causes the player to roll quickly forward in the direction they were falling.
+--> Only runs if the character successfully times the roll correctly, which is checked in Character.StartRecoverRollAttempt
 function Character.RecoverRoll(character: Model, direction: Vector3) --> Roll to mitigate fall damage (must be timed correctly)
 	local hum: Humanoid = character.Humanoid
 	local root: BasePart = character.HumanoidRootPart
 	local rootAttachment: Attachment = root.RootAttachment
 	local isAlreadyRecoverRolling = Character.Is("RecoverRolling", character)
-	if isAlreadyRecoverRolling then --[[warn("Already falling, CharacterMovement.Fall will end now.")]] return end
+	if isAlreadyRecoverRolling then 
+		warn("Already recover rolling! No need to try again!")]
+		return
+	end
 
 	--> Should only be falling at this point...
 	local rollingAnimTrack = Character.PlayAnimation({
@@ -413,7 +420,7 @@ function Character.RecoverRoll(character: Model, direction: Vector3) --> Roll to
 end
 
 function Character.StartRecoverRollAttempt(character: Model)
-	--> Just as a note, character can only recover roll on big falls, not small falls.
+	--> Just as a note, character can only recover roll on big falls (more than 20 studs), not small falls.
 	local failedToRecoverRoll = Character.Is("FailedToRecoverRoll", character)
 	if failedToRecoverRoll then warn(`{character} can't try to recover, because they already missed their recovery roll window!`) return end
 	local isTryingToRecoverRoll = Character.Is("TryingToRecoverRoll", character)
@@ -441,6 +448,7 @@ function Character.Jump(character: Model)
 	Character.Fall(character, true)
 end
 
+-- Safer to disable a player's controls to stop their movement than editing WalkSpeed, since even with a StateMachine, editing walkspeed can be prone to bugs
 function Character.DisableControls(character: Model) --> I think this whole function is just reserved for the player
 	Character.Add("DisabledControls", character)
 	local player = game:GetService("Players"):GetPlayerFromCharacter(character)
@@ -449,6 +457,7 @@ function Character.DisableControls(character: Model) --> I think this whole func
 	end
 end
 
+-- Safer to disable a player's controls to stop their movement than editing WalkSpeed, since even with a StateMachine, editing walkspeed can be prone to bugs
 function Character.EnableControls(character: Model)
 	Character.Remove("DisabledControls", character)
 	local player = game:GetService("Players"):GetPlayerFromCharacter(character)
