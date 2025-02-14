@@ -123,10 +123,13 @@ local function onKeyframeReached(animTrack: AnimationTrack, character: Model)
 	end)
 end
 
+-- I feel like PlayAnimation and StopAnimation are self-explanatory and basic enough for most scripters to understand.
+
 function Character.PlayAnimation(data: table, character: Model): AnimationTrack
 	local animation: Animation = data["Animation"]
 	local looped: boolean = data["Looped"] or false
-	
+
+	-- Basic safety checks
 	if typeof(looped) ~= "boolean" then
 		warn(`"looped" variable is not a boolean, it is {looped}! Will not play animation: {animation}.`)
 		return
@@ -134,14 +137,6 @@ function Character.PlayAnimation(data: table, character: Model): AnimationTrack
 	
 	if not character then
 		warn(`character is nil! Will not play animation: {animation}.`)
-	end
-	
-	local animator: Animator = character.Humanoid.Animator
-	local currentlyPlayingAnimationTracks = animator:GetPlayingAnimationTracks()
-	for _, animTrack: AnimationTrack in ipairs(currentlyPlayingAnimationTracks) do
-		if animTrack.Animation == animation then
-			--return
-		end
 	end
 	
 	local newAnimTrack = animator:LoadAnimation(animation)
