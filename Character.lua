@@ -279,26 +279,31 @@ function Character.Fall(character: Model, shouldJumpForward: boolean)
 	local hum: Humanoid = character.Humanoid
 	local root: BasePart = character.HumanoidRootPart
 	local isAlreadyFalling = Character.Is("Falling", character)
-	if isAlreadyFalling then --[[warn("Already falling, CharacterMovement.Fall will end now.")]] return end
+	
+	if isAlreadyFalling then 
+		warn("Already falling, CharacterMovement.Fall will end now.")
+		return 
+	end
 
 	Character.Add("Falling", character)
 	Character.Remove("Sprinting", character)
 	Character.Remove("Walking", character)
 	Character.Remove("RecoverRolling", character)
 	Character.Remove("Idle", character) --> Sometimes character goes from Idle -> Falling in some weird contexts.
+	
+	-- It's possible the character could be in the middle of rolling while they hit another edge, so we need to cancel it:
 	if SoundFX.RecoverRoll.IsPlaying then SoundFX.RecoverRoll:Stop() end
 
-	local fallY = root.Position.Y
-	local currentVelocity = root.AssemblyLinearVelocity
+	local fallY = root.Position.Y -- Stores the last highest Y position while falling. Used for fall damage
+	local currentVelocity = root.AssemblyLinearVelocity -- The speed at which you travel while jumping is equivalent to how fast you were walking/running when you went off the edge of a ledge.
 	local rollVelocity = Vector3.new(currentVelocity.X, 0, currentVelocity.Z)
-	local rotationConstant = root.CFrame - root.CFrame.Position--CFrame.new(Vector3.zero, hum.MoveDirection) DO NOT CHANGE rotationConstant TO AssemblyLinearVelocity, ITHERE IS A GAMEBREAKING BUG WHEN YOU SLOWLY WALK OFF LEDGES!!!
+	local rotationConstant = root.CFrame - root.CFrame.Position--CFrame.new(Vector3.zero, hum.MoveDirection) --DO NOT CHANGE rotationConstant TO AssemblyLinearVelocity, ITHERE IS A GAMEBREAKING BUG WHEN YOU SLOWLY WALK OFF LEDGES!!!
 	hum.WalkSpeed = 0
 	if rs:IsClient() then
 		SoundFX.Jump:Play()
-	elseif rs:IsServer() then
-		
 	end
 
+	-- Sometimes we don't want the player to jump forward. Sometimes, if the ground breaks under them, they would just freefall!
 	if shouldJumpForward then
 		root.AssemblyLinearVelocity = Vector3.new(currentVelocity.X, hum.JumpPower * 1.25, currentVelocity.Z)
 	end
