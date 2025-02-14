@@ -452,11 +452,5 @@ function Character.EnableJumpDetection(character: Model)
 	Character.Remove("DisabledJumpDetection", character)
 end
 
-local function getNextMoveToInQueue(character: Model): {["Character"]: number, ["Destination"]: Vector3, ["StateFunction"]: string}
-	if not Character[character] then warn(`Could not get next MoveTo in {character}'s queue, because they don't have a queue!`) return end
-	return Character[character]["MoveToQueue"][1]
-
-end
-
 
 return Character
