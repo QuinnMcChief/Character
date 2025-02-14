@@ -147,6 +147,8 @@ function Character.PlayAnimation(data: table, character: Model): AnimationTrack
 	return newAnimTrack
 end
 
+
+-- It's possible that I may not have the specific AnimationTrack from another script, but DO have access to the animation itself, so we can set the animation speed using the animation with the following function:
 function Character.SetAnimationSpeedFromAnimation(animation: Animation, newPlaybackSpeed: number, character: Model)
 	if not animation or not newPlaybackSpeed or not character then warn("Missing an argument for SetAnimationSpeed! Ending now...") return end
 	if typeof(newPlaybackSpeed) ~= "number" then warn("newPlaybackSpeed is not a number! Ending now...") return end
@@ -214,7 +216,10 @@ function Character.Sprint(character: Model)
 	local hum = character.Humanoid
 	local root = character.HumanoidRootPart
 	local isAlreadySprinting = Character.Is("Sprinting", character)
-	if isAlreadySprinting then --[[warn("Already walking, CharacterMovement.Sprint will end now.")]] return end
+	if isAlreadySprinting then 
+		warn("Already walking, CharacterMovement.Sprint will end now.")
+		return 
+	end
 
 	Character.Add("Sprinting", character)
 	Character.Remove("Idle", character)
